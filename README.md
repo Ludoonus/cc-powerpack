@@ -1,5 +1,7 @@
 # CC Powerpack — Guardrails for Claude Code
 
+[![tests](https://github.com/Ludoonus/cc-powerpack/actions/workflows/test.yml/badge.svg)](https://github.com/Ludoonus/cc-powerpack/actions/workflows/test.yml)
+
 **[Website](https://ludoonus.github.io/cc-powerpack/)** · MIT · runs 100% locally · no telemetry
 
 AI coding agents don't usually fail by writing malicious code. They fail by
