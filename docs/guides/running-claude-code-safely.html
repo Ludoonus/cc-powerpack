@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Running Claude Code Safely and Efficiently: The Complete Guide (2026)</title>
+<meta name="description" content="The complete guide to running Claude Code (and other AI coding agents) safely and efficiently — guardrails, secret scanning, token cost, auditing, and recovery. Links to deep-dives on each.">
+<link rel="canonical" href="https://ludoonus.github.io/cc-powerpack/guides/running-claude-code-safely">
+<meta property="og:title" content="Running Claude Code Safely and Efficiently: The Complete Guide">
+<meta property="og:type" content="article">
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--border:#30363d;--accent:#3fb950}
+  *{box-sizing:border-box;margin:0}
+  body{background:var(--bg);color:#c9d1d9;font:16px/1.7 ui-sans-serif,system-ui,sans-serif}
+  .wrap{max-width:780px;margin:0 auto;padding:48px 20px}
+  h1{font-size:2.1rem;line-height:1.18;margin-bottom:10px;color:#e6edf3}
+  h2{font-size:1.4rem;margin:40px 0 12px;color:#e6edf3}
+  .meta{color:#8b949e;margin-bottom:30px}
+  p,li{color:#c9d1d9}
+  a{color:#58a6ff}
+  .guide{display:block;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin:12px 0;text-decoration:none}
+  .guide b{color:#e6edf3}
+  .guide span{color:#8b949e;font-size:.92rem;display:block;margin-top:4px}
+  .cta{display:block;margin:36px 0;padding:18px 20px;background:var(--panel);border:1px solid var(--border);border-radius:10px}
+  nav a{color:#8b949e;font-size:.9rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav><a href="../index.html">← CC Powerpack</a></nav>
+  <h1>Running Claude Code Safely and Efficiently: The Complete Guide</h1>
+  <p class="meta">Everything that matters about operating an AI coding agent — in one place</p>
+
+  <p>AI coding agents like Claude Code can run shell commands, edit files, and push to git
+  on your behalf. That power is the point — and the risk. This guide is the map: the small
+  number of things that actually matter when you run an agent on real work, each linking to
+  a focused deep-dive. If you operate an agent daily, this is the short list to get right.</p>
+
+  <h2>1. Understand how agents actually fail</h2>
+  <p>Agents rarely fail by writing malicious code. They fail by running <em>correct</em>
+  commands with unintended blast radius — a <code>git add -A</code> that stages your
+  <code>.env</code>, an <code>rm -rf</code> on a variable that's empty. The fix is never a
+  smarter agent; it's a checkpoint between intent and irreversible consequence.</p>
+
+  <h2>2. Put guardrails on the dangerous commands</h2>
+  <a class="guide" href="claude-code-hooks-guide"><b>How Claude Code hooks work →</b>
+    <span>The mechanism: PreToolUse hooks, exit codes, and fail-closed design.</span></a>
+  <a class="guide" href="stop-ai-agents-leaking-secrets"><b>Stop agents leaking secrets →</b>
+    <span>Scan outgoing commits before every push so a key never reaches a remote.</span></a>
+
+  <h2>3. Control the cost</h2>
+  <a class="guide" href="reduce-claude-code-token-cost"><b>Where your tokens actually go →</b>
+    <span>Re-reads, oversized tool output, and cache misses — measure and cut each.</span></a>
+
+  <h2>4. Know what your agent did</h2>
+  <a class="guide" href="audit-what-ai-agent-did"><b>Audit what your agent actually did →</b>
+    <span>Every command, file write, and sensitive-path access — from the transcripts.</span></a>
+
+  <h2>5. Have a recovery plan</h2>
+  <a class="guide" href="recover-from-ai-agent-mistake"><b>Recovering when an agent breaks something →</b>
+    <span>Force-push, deleted work, leaked secret — the playbooks, in the right order.</span></a>
+
+  <h2>The tools</h2>
+  <p>Two free, local, open-source tools cover most of this in practice:</p>
+  <ul>
+    <li><a href="https://github.com/Ludoonus/cc-powerpack">cc-powerpack</a> — the guardrail
+      hooks (secret scanning, dangerous-command gating, worktree protection), one-command install.</li>
+    <li><a href="https://github.com/Ludoonus/operator">Operator</a> — the console that shows
+      your cost, audit trail, attempted dangerous actions, and token waste in one command.</li>
+  </ul>
+
+  <div class="cta">
+    <strong>Want the whole thing in depth?</strong><br>
+    The Claude Code Operator's Handbook is 18 chapters covering all of the above and more —
+    the full threat model, every guardrail as a tested hook, the complete cost playbook,
+    shipping workflows, recovery, auditing, and scaling to parallel agents.
+    <a href="https://buy.polar.sh/polar_cl_bdvCUcss2gZxnVYP1XrPrDFkRRMpByDSFKsCU0tMoJA">Get the handbook ($29) →</a>
+  </div>
+</div>
+</body>
+</html>
