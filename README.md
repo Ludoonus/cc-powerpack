@@ -1,8 +1,15 @@
 # CC Powerpack — Guardrails for Claude Code
 
+**[Website](https://ludoonus.github.io/cc-powerpack/)** · MIT · runs 100% locally · no telemetry
+
 AI coding agents don't usually fail by writing malicious code. They fail by
 running *correct* commands with unintended blast radius. This plugin gates the
 dangerous ones at the harness level — before execution, not after.
+
+```
+/plugin marketplace add Ludoonus/cc-powerpack
+/plugin install cc-powerpack
+```
 
 ## What's in the free tier
 
