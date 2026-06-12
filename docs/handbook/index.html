@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Claude Code Operator's Handbook — run AI coding agents safely</title>
+<meta name="description" content="An 18-chapter, 14,000-word handbook on running AI coding agents safely and efficiently: the threat model, tested guardrails, token-cost optimization, shipping workflows, recovery, and scaling. $29, read free sample.">
+<link rel="canonical" href="https://ludoonus.github.io/cc-powerpack/handbook/">
+<meta property="og:title" content="The Claude Code Operator's Handbook">
+<meta property="og:type" content="book">
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--bd:#30363d;--tx:#e6edf3;--dim:#9aa7b4;--ac:#3fb950}
+  *{box-sizing:border-box;margin:0}
+  body{background:var(--bg);color:var(--tx);font:16px/1.7 ui-sans-serif,system-ui,sans-serif}
+  .wrap{max-width:780px;margin:0 auto;padding:52px 20px}
+  h1{font-size:2.3rem;line-height:1.15;margin-bottom:12px}
+  .sub{color:var(--dim);font-size:1.18rem;max-width:640px}
+  .cta{display:inline-block;margin:24px 12px 0 0;padding:13px 26px;border-radius:8px;text-decoration:none;font-weight:700}
+  .cta.primary{background:var(--ac);color:#04260f}
+  .cta.ghost{border:1px solid var(--bd);color:var(--tx)}
+  h2{font-size:1.4rem;margin:46px 0 14px}
+  ol,ul{margin:0 0 0 20px;color:var(--dim)}
+  li{margin:5px 0}
+  .part{color:var(--tx);font-weight:600;margin-top:14px}
+  .panel{background:var(--panel);border:1px solid var(--bd);border-radius:10px;padding:20px;margin-top:14px}
+  .price{font-size:1.8rem;font-weight:700}
+  a{color:#58a6ff}
+  footer{margin-top:52px;color:var(--dim);font-size:.85rem;border-top:1px solid var(--bd);padding-top:18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>The Claude Code Operator's Handbook</h1>
+  <p class="sub">You gave an AI agent shell access to your machine. This is the operations
+  manual you should have read first — 18 chapters, ~14,000 words, on running coding agents
+  safely and efficiently in real work. Not prompt tips; operational practice.</p>
+  <a class="cta primary" href="https://buy.polar.sh/polar_cl_bdvCUcss2gZxnVYP1XrPrDFkRRMpByDSFKsCU0tMoJA">Get the handbook — $29</a>
+  <a class="cta ghost" href="sample.html">Read 3 chapters free</a>
+
+  <h2>What's inside</h2>
+  <p class="part">Part I — The Threat Model</p>
+  <ol><li>How agents actually fail (blast radius, not malice)</li>
+    <li>The permission model: allow, deny, or gate</li>
+    <li>Secrets, keys, and the .env that almost shipped</li></ol>
+  <p class="part">Part II — Guardrails</p>
+  <ol start="4"><li>Hooks deep-dive: PreToolUse, exit codes, fail-closed design</li>
+    <li>Dangerous-command gating patterns</li>
+    <li>Multi-session and worktree safety</li>
+    <li>Pre-push secret scanning that actually works</li></ol>
+  <p class="part">Part III — Cost &amp; Efficiency</p>
+  <ol start="8"><li>Where tokens really go</li><li>Prompt-cache mechanics and hit-rate tuning</li>
+    <li>CLAUDE.md as a cost lever</li><li>Tool-output discipline</li></ol>
+  <p class="part">Part IV — Workflows &amp; Recovery</p>
+  <ol start="12"><li>The /ship pipeline</li><li>Onboarding a repo (and an agent) fast</li>
+    <li>Team conventions without drift</li><li>Recovery playbooks</li>
+    <li>Auditing what an agent did</li><li>Scaling to parallel agents</li>
+    <li>A maturity model for agent operations</li></ol>
+
+  <h2>Who it's for</h2>
+  <ul>
+    <li>Developers running Claude Code (or any coding agent) daily on real codebases.</li>
+    <li>Teams adopting agents who need shared, safe operating practice.</li>
+    <li>Anyone who's had — or wants to avoid — the "the agent did *what*?" moment.</li>
+  </ul>
+
+  <div class="panel">
+    <div class="price">$29 <span style="font-size:1rem;color:var(--dim)">one-time</span></div>
+    <p style="color:var(--dim);margin:8px 0 14px">Clean HTML book — read in any browser or print to PDF. No DRM. Yours to keep.</p>
+    <a class="cta primary" href="https://buy.polar.sh/polar_cl_bdvCUcss2gZxnVYP1XrPrDFkRRMpByDSFKsCU0tMoJA" style="margin:0">Get the handbook →</a>
+    <a class="cta ghost" href="sample.html" style="margin-left:10px">Read a free sample</a>
+  </div>
+
+  <footer>The companion tooling — guardrail hooks and the Operator console described
+  throughout — is free and open-source: <a href="https://github.com/Ludoonus/cc-powerpack">cc-powerpack</a>,
+  <a href="https://github.com/Ludoonus/operator">Operator</a>. · <a href="../">CC Powerpack home</a></footer>
+</div>
+</body>
+</html>

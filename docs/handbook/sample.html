@@ -1,0 +1,103 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<title>The Claude Code Operator's Handbook — Free Sample</title><style>
+    body{font:16px/1.7 Georgia,serif;color:#1a1a1a;max-width:720px;margin:0 auto;padding:60px 28px;background:#fff}
+    h1{font-size:1.9rem;line-height:1.2;margin:60px 0 10px;border-top:2px solid #1a1a1a;padding-top:40px}
+    h1:first-of-type{border-top:none;padding-top:0}
+    h2{font-size:1.3rem;margin:34px 0 12px}
+    h3{font-size:1.08rem;margin:24px 0 8px}
+    p{margin:0 0 14px}
+    code{font-family:ui-monospace,Menlo,monospace;font-size:.85em;background:#f3f3f0;padding:1px 5px;border-radius:3px}
+    pre{background:#1a1a1a;color:#e6e6e6;padding:14px 16px;border-radius:6px;overflow-x:auto;font-size:.82rem;line-height:1.5}
+    pre code{background:none;color:inherit;padding:0}
+    table{border-collapse:collapse;width:100%;margin:14px 0;font-size:.9rem}
+    th,td{border:1px solid #ccc;padding:6px 9px;text-align:left}
+    th{background:#f3f3f0}
+    hr{border:none;border-top:1px solid #ddd;margin:28px 0}
+    a{color:#0b5}
+    em{color:#444}
+    .cover{text-align:center;padding:120px 0 80px;border-bottom:2px solid #1a1a1a;margin-bottom:20px}
+    .cover h1{border:none;font-size:2.6rem;padding:0}
+    .cover p{font-size:1.1rem;color:#555}
+    @media print{body{max-width:none}h1{page-break-before:always}.cover h1{page-break-before:avoid}}
+    </style></head><body>
+<div class="cover"><h1>The Claude Code Operator's Handbook</h1><p>Free 3-chapter sample</p></div>
+<h1>Chapter 1: How Agents Actually Fail</h1>
+<p>The mental model most people bring to AI coding agents is borrowed from science fiction: the worry is that the agent will <em>decide</em> to do something harmful. In two years of running agents against real codebases, I have never once seen that. What I have seen, repeatedly, is something far more mundane and far more dangerous in practice: an agent runs a completely reasonable command whose blast radius is larger than anyone intended.</p>
+<p>This distinction is the foundation of everything else in this book, so it&#x27;s worth being precise about it.</p>
+<h2>Malice versus blast radius</h2>
+<p>A <em>malicious</em> failure would be the agent writing a backdoor, exfiltrating data, or sabotaging your tests on purpose. These make for good headlines and bad threat models, because they&#x27;re not what actually happens. Modern coding agents are trained to be helpful and are remarkably literal about it.</p>
+<p>A <em>blast-radius</em> failure is different. The agent wants to &quot;save the current progress,&quot; so it runs <code>git add -A &amp;&amp; git commit -m &quot;wip&quot; &amp;&amp; git push</code>. Every word of that is something you&#x27;d do yourself. The problem is that <code>git add -A</code> doesn&#x27;t mean &quot;stage my work&quot; — it means &quot;stage every untracked file in the tree,&quot; and in this particular tree that includes the <code>.env</code> file you created twenty minutes ago and never added to <code>.gitignore</code>. The commit is correct. The push succeeds. Your database credentials are now in a remote&#x27;s history.</p>
+<p>Nothing went wrong with the agent&#x27;s reasoning. The command did exactly what it says. The failure is that the <em>consequence</em> of a correct command exceeded the <em>intent</em> behind it — and there was no checkpoint between the two.</p>
+<h2>Why agents hit these more than humans</h2>
+<p>Experienced developers avoid most blast-radius failures through reflexes they&#x27;ve forgotten they have. You glance at <code>git status</code> before committing. You feel a flicker of unease when a path has a variable in it. You instinctively pause before <code>rm -rf</code> on anything you didn&#x27;t just create. None of that is in the code; it&#x27;s in you, accumulated through past mistakes.</p>
+<p>An agent has none of those scars unless you give them to it explicitly. It will cheerfully run <code>rm -rf &quot;$BUILD_DIR&quot;</code> without first checking whether <code>$BUILD_DIR</code> is set — and if it isn&#x27;t, that command expands to <code>rm -rf</code> with an empty argument, or worse, depending on the surrounding script. It will <code>git reset --hard origin/main</code> to &quot;get back to a clean state,&quot; discarding an hour of uncommitted work, because the phrase &quot;clean state&quot; pattern-matched to that command. It is not being reckless. It simply doesn&#x27;t have the reflex, and reflexes are exactly the thing that doesn&#x27;t transfer through a system prompt.</p>
+<h2>The three categories that matter</h2>
+<p>Across hundreds of sessions, the blast-radius failures that actually cause damage cluster into three categories. The rest of this book is largely about gating each one.</p>
+<p><strong>1. Irreversible data loss.</strong> Commands that destroy state with no undo: <code>rm -rf</code> on the wrong path, <code>git reset --hard</code> against a remote ref, <code>git push --force</code> over a colleague&#x27;s commits, <code>dd</code> to the wrong device, dropping a database. The common thread is that the cost of being wrong is asymmetric — a confirmation prompt costs two seconds, and skipping it can cost a day or a career.</p>
+<p><strong>2. Secret exposure.</strong> Anything that moves a credential somewhere it shouldn&#x27;t be: committing a <code>.env</code>, pasting an API key into a file that gets pushed, logging a token. The danger here is compounding — once a secret reaches any remote, even a private one, it must be treated as compromised and rotated, because you can no longer prove who saw it.</p>
+<p><strong>3. Shared-state collisions.</strong> In multi-session and multi-agent setups, one agent modifies state another agent or human owns: deleting a git worktree that looks orphaned but isn&#x27;t, rewriting a branch someone else is building on, &quot;cleaning up&quot; files that are load-bearing for a process you can&#x27;t see. These are the subtlest because the agent has no way to know the state is shared.</p>
+<h2>The checkpoint principle</h2>
+<p>If there&#x27;s one idea to take from this chapter, it&#x27;s this: <strong>the fix is almost never a smarter agent. It&#x27;s a checkpoint between intent and consequence.</strong></p>
+<p>A blast-radius failure happens because a correct command executes with no gate between deciding to run it and the irreversible effect. Insert a gate — a hook that inspects the command, recognizes the dangerous pattern, and either blocks it or forces a human confirmation — and the entire category collapses. The agent stays as capable as before; it just can no longer turn a two-second mistake into a permanent one without a human in the loop for the handful of commands where that matters.</p>
+<p>The chapters in Part II build these gates concretely, as Claude Code hooks you can install and verify. But the principle is tool-agnostic and worth internalizing first: you are not trying to make the agent perfect. You are trying to make its worst possible action recoverable.</p>
+<hr>
+<p><em>Next: Chapter 2 — The permission model: what to allow, deny, and gate.</em></p><h1>Chapter 2: The Permission Model — What to Allow, Deny, and Gate</h1>
+<p>Chapter 1 argued that the fix for agent failures is a checkpoint between intent and consequence. This chapter is about where those checkpoints live and how to decide, for any given command, whether it should run freely, be blocked outright, or pause for a human. Get this taxonomy right and most of the work in later chapters becomes mechanical.</p>
+<h2>Three verdicts, not two</h2>
+<p>The instinct when securing an agent is binary: allow or deny. That instinct produces bad systems, because it forces every command into one of two extremes. Deny too much and the agent constantly stalls on safe operations, so you loosen the rules until they&#x27;re meaningless. Deny too little and the dangerous commands sail through.</p>
+<p>The useful model has three verdicts:</p>
+<ul><li><strong>Allow</strong> — the command runs with no friction. This must be the overwhelming</li></ul>
+<p>  default, or the agent is useless and you&#x27;ll disable the guardrails out of   frustration.</p>
+<ul><li><strong>Deny</strong> — the command never runs, full stop, no override in-session. Reserved</li></ul>
+<p>  for things that are never legitimate in your context.</p>
+<ul><li><strong>Gate</strong> — the command pauses and requires explicit human confirmation before</li></ul>
+<p>  proceeding. This is the verdict that does the real work, and the one binary   systems lack.</p>
+<p>Most of the craft is in sorting commands into these three buckets correctly. Put something in <em>deny</em> that&#x27;s occasionally legitimate and you&#x27;ll be fighting your own rules. Put something in <em>allow</em> that has irreversible blast radius and you&#x27;ve learned nothing from Chapter 1.</p>
+<h2>The sorting questions</h2>
+<p>For any command class, three questions place it:</p>
+<p><strong>Is it reversible?</strong> If the worst outcome is easily undone — editing a file you can restore from git, running a test, reading data — it belongs in <em>allow</em>. Reversibility is the single strongest signal. The entire blast-radius problem is about irreversibility.</p>
+<p><strong>Is it ever legitimate here?</strong> <code>chmod 777</code> is almost never the right call in a normal project, so in most repos it&#x27;s a <em>deny</em>. But in a throwaway sandbox it might be fine. Context decides. If a command is legitimate even 5% of the time, it can&#x27;t be <em>deny</em> — it&#x27;s <em>gate</em>.</p>
+<p><strong>Is the cost of a wrong confirmation asymmetric?</strong> <code>git push --force</code> to a feature branch you own is routine; to <code>main</code> it can destroy shared history. Same command, different blast radius depending on the target. The asymmetric cases are textbook <em>gate</em>: cheap to confirm, expensive to get wrong.</p>
+<h2>A worked taxonomy</h2>
+<p>Here is a starting point you can adapt. The exact lines move with your context, but the shape is stable.</p>
+<p><strong>Allow (the default):</strong> reading files, searching, running tests and builds, linting, <code>git status</code> / <code>git diff</code> / <code>git log</code>, creating branches, staging and committing specific files by path, installing dependencies in a project.</p>
+<p><strong>Gate (pause for a human):</strong> <code>git push</code> (scan first — see Chapter 7), <code>git push --force</code> to any protected branch, <code>git reset --hard</code> against a remote ref, <code>rm -rf</code> on anything not freshly created this session, <code>chmod 777</code>, piping a remote script into a shell, deleting or modifying git worktrees, any destructive database command, <code>git add -A</code> in a repo containing worktrees.</p>
+<p><strong>Deny (never in this context):</strong> writing to block devices (<code>dd of=/dev/...</code>), <code>rm -rf /</code> and home-directory roots, disabling the guardrails themselves, exfiltrating credentials to a network endpoint.</p>
+<h2>Why &quot;gate&quot; beats &quot;deny&quot; for most danger</h2>
+<p>It&#x27;s tempting to just deny everything risky. Resist it. A pure-deny system trains the agent — and you — to route around the rules, because legitimate work keeps hitting walls. A gate, by contrast, costs almost nothing when the action is legitimate (you glance at it, confirm, move on) and saves you completely when it isn&#x27;t. The friction is proportional to the risk and only paid when the risk is real.</p>
+<p>There&#x27;s a second, subtler benefit. A gate that feeds its reason back to the agent <em>teaches</em> it. When the agent tries <code>git push --force origin main</code> and the gate responds &quot;blocked: force-push to a protected branch — confirm with the user first,&quot; a well-built agent doesn&#x27;t just retry. It surfaces the action to you and explains why. The gate has turned a near-miss into a deliberate, visible decision. Deny can&#x27;t do that; it just produces an opaque failure the agent works around.</p>
+<h2>Where the checkpoints live</h2>
+<p>In Claude Code, all three verdicts are implemented as <strong>hooks</strong> — scripts the harness runs before a tool executes. <em>Allow</em> is the absence of a blocking hook. <em>Deny</em> and <em>gate</em> are hooks that exit with a blocking status, the difference being whether the agent is told to ask a human (gate) or that the action is categorically off-limits (deny).</p>
+<p>The next chapter drills into the highest-value category — secrets — and Part II builds each gate as concrete, installable, testable hooks. But the taxonomy comes first, because a hook is only as good as the decision about which bucket a command belongs in. Tools enforce policy; they don&#x27;t write it.</p>
+<hr>
+<p><em>Next: Chapter 3 — Secrets, keys, and the .env that almost shipped.</em></p><h1>Chapter 8: Where Tokens Really Go</h1>
+<p>Part II was about catastrophe — the rare, expensive failures you must prevent. Part III is about the opposite: the ordinary, daily economics of running an agent. Nobody gets fired over token spend, which is exactly why it quietly bleeds. An agent that costs three times what it should still works; the waste is invisible until you measure it. This chapter is about measuring it, because you cannot optimize what you haven&#x27;t quantified, and almost everyone optimizes token usage by superstition instead of data.</p>
+<h2>The bill is not where you think</h2>
+<p>Ask a developer why their Claude Code spend is high and you&#x27;ll usually hear &quot;too many turns&quot; or &quot;the model is just expensive.&quot; Both are almost always wrong. When you actually instrument a session, the cost concentrates in a few specific, fixable patterns — and none of them is &quot;the model charged too much per token.&quot; The price per token is fixed. What varies, enormously, is how many tokens you hand it, and that&#x27;s entirely within your control.</p>
+<p>The good news is that Claude Code already records everything you need. Every session is written as a transcript to <code>~/.claude/projects/</code>, and every assistant turn in that transcript carries a <code>usage</code> object reporting exactly what was billed.</p>
+<h2>Reading the usage object</h2>
+<p>Each assistant turn&#x27;s <code>usage</code> has four numbers that matter:</p>
+<ul><li><code>input_tokens</code> — fresh input tokens, billed at full rate.</li><li><code>output_tokens</code> — what the model generated, the most expensive per-token category.</li><li><code>cache_read_input_tokens</code> — input served from the prompt cache, billed at a deep</li></ul>
+<p>  discount.</p>
+<ul><li><code>cache_creation_input_tokens</code> — input written into the cache, a small surcharge</li></ul>
+<p>  over base input.</p>
+<p>The relationship between these four tells you almost everything about a session&#x27;s efficiency. A healthy session has most of its input arriving as <code>cache_read</code> — the conversation&#x27;s stable prefix served cheaply, turn after turn. A wasteful session has a low cache-read share, meaning it keeps paying full freight for context it already paid for once.</p>
+<h2>The three waste patterns</h2>
+<p>Across real sessions, the recoverable waste concentrates in three places. Chapters 9 through 11 each take one; this chapter names them so you know what you&#x27;re hunting.</p>
+<p><strong>Re-reading the same files.</strong> The agent reads a large file, the conversation moves on, the file falls out of working context, and later it reads the <em>entire</em> file again. A 2,000-line reference file read five times is four full-file payloads you paid for and discarded. This is usually the single largest line item, and it&#x27;s measurable directly: count how many times each file path appears as a <code>Read</code> across a session.</p>
+<p><strong>Oversized tool output.</strong> Tool results are input tokens on the next turn. A <code>cat</code> of a long log, an un-truncated test run, a full diff of a generated lockfile — each lands in context at full size, and a big one can evict the cache, so you pay twice. Measurable by summing result size per tool.</p>
+<p><strong>Cache misses.</strong> Long idle gaps let the ~5-minute cache window expire; context churn from huge results evicts the cached prefix. Either way the next turn re-pays for the whole prefix. Measurable as a low <code>cache_read</code> share of total input.</p>
+<h2>Measuring it yourself</h2>
+<p>You don&#x27;t need a product to see this — a short script that walks the transcripts, sums the four usage fields, attributes tool-result size by tool, and counts reads per file will surface the waste in seconds. The numbers are blunt and convincing: it&#x27;s common to find 15–30% of input tokens going to re-reads and oversized results alone, before you&#x27;ve changed a single habit.</p>
+<p>When you run this on your own history for the first time, the experience is usually the same — a specific file you didn&#x27;t realize was being read a dozen times, a single tool whose output dwarfs everything else, a cache-hit rate far below where it should be. That concreteness is the point. &quot;Be more efficient&quot; is useless advice; &quot;this one file cost you 80,000 tokens in re-reads this week&quot; is actionable.</p>
+<h2>What good looks like</h2>
+<p>As a rough calibration: a well-run session reads 70% or more of its input from cache, has no single file read more than two or three times, and has no tool result large enough to dominate the others. If you&#x27;re far from those, the next three chapters are where the savings are — re-reads in Chapter 9 and the cache itself in that same discussion, <code>CLAUDE.md</code> as a structural fix in Chapter 10, and tool-output discipline in Chapter 11. But it starts here, with a number. Measure first. Optimize second. The reverse is how people waste a weekend tuning the thing that wasn&#x27;t the problem.</p>
+<hr>
+<p><em>Next: Chapter 9 — Prompt-cache mechanics and hit-rate tuning.</em></p><hr><h1>This is a free sample</h1>
+<p>You just read three chapters of <strong>The Claude Code Operator's Handbook</strong> —
+the threat model, the permission taxonomy, and the start of the cost section. The full
+book is 18 chapters across four parts: the complete set of safety gates (with tested
+implementations), the full cost-optimization playbook, the shipping and recovery
+workflows, and the path to running parallel agents safely.</p>
+<p><strong>Get the full handbook:</strong> <a href="https://ludoonus.gumroad.com/l/PowerPackPro">on Gumroad</a>.
+The companion open-source tooling is free at <a href="https://github.com/Ludoonus/cc-powerpack">github.com/Ludoonus/cc-powerpack</a>.</p></body></html>
