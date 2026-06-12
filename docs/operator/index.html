@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Operator — see what your Claude Code agent costs and does</title>
+<meta name="description" content="Operator is a local console for Claude Code: unified cost, audit, safety, and efficiency across every project. Find token waste, see what your agent did, all from transcripts you already have. Free.">
+<link rel="canonical" href="https://ludoonus.github.io/cc-powerpack/operator/">
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--bd:#30363d;--tx:#e6edf3;--dim:#9aa7b4;--ac:#3fb950}
+  *{box-sizing:border-box;margin:0}
+  body{background:var(--bg);color:var(--tx);font:16px/1.6 ui-sans-serif,system-ui,sans-serif}
+  .wrap{max-width:820px;margin:0 auto;padding:56px 20px}
+  h1{font-size:2.3rem;line-height:1.15;margin-bottom:14px}
+  .sub{color:var(--dim);font-size:1.18rem;max-width:640px}
+  .cta{display:inline-block;margin:26px 12px 0 0;padding:13px 26px;border-radius:8px;text-decoration:none;font-weight:700}
+  .cta.primary{background:var(--ac);color:#04260f}
+  .cta.ghost{border:1px solid var(--bd);color:var(--tx)}
+  pre{background:var(--panel);border:1px solid var(--bd);border-radius:8px;padding:16px;overflow-x:auto;font-size:.82rem;margin:26px 0;line-height:1.5}
+  h2{font-size:1.4rem;margin:46px 0 14px}
+  .grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+  .card{background:var(--panel);border:1px solid var(--bd);border-radius:10px;padding:18px}
+  .card h3{font-size:1.05rem;margin-bottom:6px}
+  .card p{color:var(--dim);font-size:.92rem}
+  .tier{border:1px solid var(--bd);border-radius:10px;padding:22px;background:var(--panel)}
+  .tier .price{font-size:1.6rem;font-weight:700;margin:6px 0}
+  .tier ul{margin:10px 0 0 18px;color:var(--dim);font-size:.92rem}
+  a{color:#58a6ff}
+  footer{margin-top:56px;color:var(--dim);font-size:.85rem;border-top:1px solid var(--bd);padding-top:18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>You have no idea what your Claude Code sessions cost — or did.</h1>
+  <p class="sub">Operator is a local console that reads the transcripts Claude Code
+  already writes and shows you, in one command: cost per project, what every command
+  did, the risky actions your agent attempted, and exactly where tokens are wasted.
+  Nothing leaves your machine.</p>
+  <a class="cta primary" href="https://github.com/Ludoonus/operator">Get it free on GitHub →</a>
+  <a class="cta ghost" href="#pro">See Pro</a>
+
+  <pre>  OPERATOR — last 30 days — 43 sessions, 29,421 turns
+
+  ── COST ──────────────────────────────
+  output tokens            51,882,925
+  cache hit rate                 96.3%
+  est. list-price cost         $25,651
+
+  ── SAFETY ────────────────────────────
+  30 risky actions attempted (19 critical)
+
+  ── EFFICIENCY ────────────────────────
+  !! ~2,324,986 tokens wasted re-reading files</pre>
+
+  <h2>What it shows you</h2>
+  <div class="grid">
+    <div class="card"><h3>💰 Cost</h3><p>Tokens + estimated dollars per project, model, and tool. Your real cache hit rate.</p></div>
+    <div class="card"><h3>🔍 Audit</h3><p>Every command run, file written, and sensitive-path access — across all projects.</p></div>
+    <div class="card"><h3>🛡 Safety</h3><p>The dangerous actions your agent attempted: force-pushes, rm -rf on risky paths, curl|sh.</p></div>
+    <div class="card"><h3>⚡ Efficiency</h3><p>Re-read waste and the exact CLAUDE.md fixes. Most users find 15–30% waste.</p></div>
+  </div>
+
+  <h2>Install in 30 seconds</h2>
+  <pre>git clone https://github.com/Ludoonus/operator &amp;&amp; cd operator
+python3 -m opr.cli report</pre>
+  <p class="sub" style="font-size:.95rem">Python 3.8+, no dependencies. Read-only. No telemetry, no servers, no exposed ports.</p>
+
+  <h2 id="pro">Free vs Pro</h2>
+  <div class="grid">
+    <div class="tier"><h3>Free</h3><div class="price">$0</div>
+      <ul><li>Full <code>operator report</code></li><li>--json for CI</li><li>MIT</li></ul>
+      <a class="cta ghost" href="https://github.com/Ludoonus/operator" style="margin-top:14px">GitHub →</a></div>
+    <div class="tier"><h3>Pro</h3><div class="price">$29/mo</div>
+      <ul><li>Interactive TUI console</li><li>Per-session command timeline</li><li>Multi-project rollups + export</li><li>Full safety log</li></ul>
+      <a class="cta primary" href="https://buy.polar.sh/polar_cl_9RmKOCfgMjMmqy1nhYBHrtweMDn7UqupcJto51MNX2G" style="margin-top:14px">Get Pro →</a></div>
+  </div>
+
+  <footer>Operator — part of the agent-ops toolkit. <a href="../">CC Powerpack &amp; more →</a></footer>
+</div>
+</body>
+</html>
