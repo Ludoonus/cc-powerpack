@@ -55,7 +55,7 @@ the user instead of retrying.
 ## Pro tier
 
 5 more plugins (token-audit, pr-pipeline, onboard, team-sync + monthly new
-ones), updated monthly: [Gumroad link]
+ones), updated monthly: [https://evancreats.gumroad.com/l/PowerPackPro](https://evancreats.gumroad.com/l/PowerPackPro)
 
 ## License
 
