@@ -5,11 +5,14 @@ set -uo pipefail
 FAIL="${1:-true}"
 patterns='(AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{22,}|sk-[A-Za-z0-9_-]{20,}|sk-ant-[A-Za-z0-9_-]{20,}|xox[baprs]-[A-Za-z0-9-]{10,}|AIza[0-9A-Za-z_-]{35}|-----BEGIN (RSA|EC|OPENSSH|PGP) PRIVATE KEY-----)'
 found=0
+# Well-known public example/test keys that are NOT real secrets (appear in docs/tests).
+ALLOWLIST='(AKIAIOSFODNN7EXAMPLE|AKIAIOSFODNN7EXAMPLE|EXAMPLE|ghp_xxx|sk-xxx|sk-ant-xxx)'
 
 # 1. credential-shaped strings in tracked files
 while IFS= read -r f; do
   [ -f "$f" ] || continue
-  if grep -aEl "$patterns" "$f" >/dev/null 2>&1; then
+  # lines matching a secret pattern but NOT an allowlisted example
+  if grep -aE "$patterns" "$f" 2>/dev/null | grep -avE "$ALLOWLIST" >/dev/null 2>&1; then
     echo "::error file=$f::cc-powerpack: credential-shaped string detected"
     found=1
   fi
