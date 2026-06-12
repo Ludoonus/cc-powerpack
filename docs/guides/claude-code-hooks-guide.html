@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How Claude Code Hooks Work: A Practical Guide to PreToolUse Gates</title>
+<meta name="description" content="A practical guide to Claude Code's hook system — how PreToolUse hooks intercept tool calls, how exit codes block dangerous commands, and patterns for secret scanning and command gating.">
+<link rel="canonical" href="https://ludoonus.github.io/cc-powerpack/guides/claude-code-hooks-guide.html">
+<meta property="og:title" content="How Claude Code Hooks Work: A Practical Guide">
+<meta property="og:description" content="How PreToolUse hooks intercept tool calls and block dangerous agent commands before they run.">
+<meta property="og:type" content="article">
+<style>
+  :root { --bg:#0d1117; --panel:#161b22; --border:#30363d; --text:#e6edf3; --dim:#8b949e; --accent:#3fb950; }
+  * { box-sizing:border-box; margin:0; }
+  body { background:var(--bg); color:var(--text); font:16px/1.7 ui-sans-serif,system-ui,sans-serif; }
+  .wrap { max-width:760px; margin:0 auto; padding:48px 20px; }
+  h1 { font-size:2rem; line-height:1.2; margin-bottom:8px; }
+  h2 { font-size:1.35rem; margin:40px 0 14px; }
+  h3 { font-size:1.1rem; margin:28px 0 10px; }
+  p, li { color:#c9d1d9; }
+  .meta { color:var(--dim); font-size:.9rem; margin-bottom:32px; }
+  pre { background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:14px 16px; overflow-x:auto; font-size:.88rem; margin:14px 0; }
+  code { font-family:ui-monospace,monospace; font-size:.9em; }
+  p code, li code { background:var(--panel); padding:1px 5px; border-radius:4px; }
+  a { color:#58a6ff; }
+  .cta { display:block; margin:40px 0; padding:18px 20px; background:var(--panel); border:1px solid var(--border); border-radius:10px; }
+  table { border-collapse:collapse; width:100%; margin:14px 0; font-size:.92rem; }
+  th, td { border:1px solid var(--border); padding:8px 10px; text-align:left; }
+  th { background:var(--panel); }
+  nav a { color:var(--dim); font-size:.9rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav><a href="../index.html">← CC Powerpack</a></nav>
+  <h1>How Claude Code Hooks Work: A Practical Guide to PreToolUse Gates</h1>
+  <p class="meta">A practical walkthrough of intercepting tool calls in Claude Code</p>
+
+  <p>Claude Code can run shell commands, edit files, and push to git on your behalf.
+  That power is the point — and the risk. <strong>Hooks</strong> are the mechanism
+  for putting deterministic guardrails around it: small scripts the harness runs
+  at defined points in the agent's loop, able to inspect — and block — what the
+  agent is about to do.</p>
+
+  <p>This guide covers the <code>PreToolUse</code> hook specifically, because it's
+  the one that can stop a dangerous action <em>before</em> it executes.</p>
+
+  <h2>The hook lifecycle</h2>
+  <p>Claude Code fires hooks at several lifecycle events. The most useful for
+  safety are:</p>
+  <table>
+    <tr><th>Event</th><th>Fires</th><th>Can block?</th></tr>
+    <tr><td><code>PreToolUse</code></td><td>Before a tool call runs</td><td>Yes — exit 2</td></tr>
+    <tr><td><code>PostToolUse</code></td><td>After a tool call returns</td><td>No (observe/log)</td></tr>
+    <tr><td><code>SessionStart</code></td><td>When a session begins</td><td>No (inject context)</td></tr>
+    <tr><td><code>Stop</code></td><td>When the agent finishes a turn</td><td>Yes — can require more work</td></tr>
+  </table>
+
+  <h2>How a PreToolUse hook receives the tool call</h2>
+  <p>When the agent is about to call a tool, the harness serializes the call as
+  JSON and pipes it to your hook on <code>stdin</code>. For a Bash command, that
+  looks like:</p>
+  <pre><code>{
+  "tool_name": "Bash",
+  "tool_input": { "command": "git push --force origin main" }
+}</code></pre>
+  <p>Your hook reads that JSON, decides, and signals its verdict through the
+  <strong>exit code</strong>:</p>
+  <ul>
+    <li><code>exit 0</code> — allow the call to proceed.</li>
+    <li><code>exit 2</code> — block the call. Anything the hook wrote to
+      <code>stderr</code> is fed back to the model, so the agent learns <em>why</em>
+      and can change course or ask the user instead of blindly retrying.</li>
+  </ul>
+
+  <h2>A minimal command gate</h2>
+  <p>Here's a complete PreToolUse hook that blocks force-pushes to <code>main</code>:</p>
+  <pre><code>#!/usr/bin/env bash
+set -euo pipefail
+
+cmd=$(jq -r '.tool_input.command // empty')
+[ -z "$cmd" ] && exit 0
+
+if echo "$cmd" | grep -qE 'git\s+push\s+.*(--force|-f)\b.*\bmain\b'; then
+  echo "BLOCKED: force-push to main. Ask the user first." >&2
+  exit 2
+fi
+exit 0</code></pre>
+  <p>Register it in your plugin's <code>hooks.json</code>:</p>
+  <pre><code>{
+  "hooks": {
+    "PreToolUse": [
+      { "matcher": "Bash",
+        "hooks": [{ "type": "command",
+          "command": "${CLAUDE_PLUGIN_ROOT}/hooks/gate.sh" }] }
+    ]
+  }
+}</code></pre>
+
+  <h2>Three patterns worth gating</h2>
+  <h3>1. Secrets before a push</h3>
+  <p>The highest-value gate. Before any <code>git push</code>, scan the outgoing
+  commits — not the working tree — for credential-shaped strings and forbidden
+  filenames (<code>.env</code>, private keys). Use <code>gitleaks</code> if
+  available, with a regex layer as a portable fallback. A single leaked key that
+  reaches a public remote must be treated as compromised even after force-removal,
+  so catching it pre-push is the whole game.</p>
+
+  <h3>2. Blast-radius commands</h3>
+  <p>Some commands are correct in intent but catastrophic when a variable is
+  empty or a path is wrong: <code>rm -rf "$DIR"</code> with <code>$DIR</code>
+  unset, <code>git reset --hard origin/main</code> discarding local work,
+  <code>chmod 777</code>, <code>curl ... | sh</code>. Gate the patterns and make
+  the agent surface them to a human.</p>
+
+  <h3>3. Shared state an agent shouldn't touch</h3>
+  <p>If you run multiple agent sessions, one can "clean up" another's git
+  worktree that merely looks orphaned. Gate writes to <code>.claude/worktrees/</code>
+  and refuse <code>git add -A</code> in repos that contain them, since <code>-A</code>
+  silently stages worktree gitlinks.</p>
+
+  <h2>A gotcha: don't assume jq is installed</h2>
+  <p>Hooks run in whatever shell the user has. <code>jq</code> is common but not
+  guaranteed. Make the JSON extraction degrade gracefully:</p>
+  <pre><code>extract_cmd() {
+  if command -v jq >/dev/null 2>&1; then
+    jq -r '.tool_input.command // empty'
+  elif command -v python3 >/dev/null 2>&1; then
+    python3 -c 'import json,sys; print(json.load(sys.stdin).get("tool_input",{}).get("command",""))'
+  fi
+}</code></pre>
+  <p>A hook that errors out because a dependency is missing fails <em>open</em> —
+  the dangerous command runs anyway. Test your hooks against the no-jq case.</p>
+
+  <div class="cta">
+    <strong>Don't want to write and maintain these yourself?</strong><br>
+    CC Powerpack ships all three gates as a tested, one-command Claude Code plugin —
+    secret scanning, dangerous-command gating, and worktree protection.
+    <a href="https://github.com/Ludoonus/cc-powerpack">Get the free hooks on GitHub →</a>
+  </div>
+
+  <p><a href="../index.html">← Back to CC Powerpack</a></p>
+</div>
+</body>
+</html>

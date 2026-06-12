@@ -1,0 +1,3 @@
+Sitemap: https://ludoonus.github.io/cc-powerpack/sitemap.xml
+User-agent: *
+Allow: /
