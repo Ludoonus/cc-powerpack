@@ -1,0 +1,14 @@
+{
+  "name": "cc-powerpack",
+  "owner": {
+    "name": "Ludoonus",
+    "url": "https://github.com/Ludoonus"
+  },
+  "plugins": [
+    {
+      "name": "cc-powerpack",
+      "source": "./",
+      "description": "Safety guardrails for Claude Code: pre-push secret scanning, dangerous-command gate, worktree protection"
+    }
+  ]
+}

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CC Powerpack — Guardrails for Claude Code</title>
+<meta name="description" content="Safety hooks for AI coding agents: pre-push secret scanning, dangerous-command gate, worktree protection. Runs 100% locally.">
+<style>
+  :root { --bg:#0d1117; --panel:#161b22; --border:#30363d; --text:#e6edf3; --dim:#8b949e; --accent:#3fb950; --warn:#f85149; }
+  * { box-sizing:border-box; margin:0; }
+  body { background:var(--bg); color:var(--text); font:16px/1.6 ui-sans-serif,system-ui,sans-serif; }
+  .wrap { max-width:880px; margin:0 auto; padding:48px 20px; }
+  h1 { font-size:2.2rem; line-height:1.2; margin-bottom:12px; }
+  h2 { font-size:1.4rem; margin:48px 0 16px; }
+  .sub { color:var(--dim); font-size:1.15rem; max-width:640px; }
+  .cta { display:inline-block; margin:24px 12px 0 0; padding:12px 22px; border-radius:8px; text-decoration:none; font-weight:600; }
+  .cta.primary { background:var(--accent); color:#04260f; }
+  .cta.ghost { border:1px solid var(--border); color:var(--text); }
+  pre { background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:14px 16px; overflow-x:auto; font-size:.9rem; margin:12px 0; }
+  code { font-family:ui-monospace,monospace; }
+  .grid { display:grid; gap:16px; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); margin-top:8px; }
+  .card { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:18px; }
+  .card h3 { margin-bottom:8px; font-size:1.05rem; }
+  .card p { color:var(--dim); font-size:.92rem; }
+  .blocked { color:var(--warn); font-family:ui-monospace,monospace; font-size:.85rem; }
+  .tier { border:1px solid var(--border); border-radius:10px; padding:22px; background:var(--panel); }
+  .tier .price { font-size:1.6rem; font-weight:700; margin:6px 0; }
+  .tier ul { margin:10px 0 0 18px; color:var(--dim); font-size:.92rem; }
+  .badge { display:inline-block; font-size:.75rem; padding:2px 10px; border:1px solid var(--accent); color:var(--accent); border-radius:99px; margin-bottom:10px; }
+  footer { margin-top:64px; color:var(--dim); font-size:.85rem; border-top:1px solid var(--border); padding-top:20px; }
+  a { color:#58a6ff; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="badge">runs 100% locally · no telemetry · MIT free tier</span>
+  <h1>Your AI agent runs shell commands.<br>This is the seatbelt.</h1>
+  <p class="sub">AI coding agents don't fail by writing evil code — they fail by running <em>correct</em> commands with unintended blast radius. CC Powerpack gates the dangerous ones at the harness level, before execution.</p>
+  <a class="cta primary" href="https://github.com/Ludoonus/cc-powerpack">Get the free hooks →</a>
+  <a class="cta ghost" href="#pro">Pro suite</a>
+
+  <h2>What it catches</h2>
+  <div class="grid">
+    <div class="card"><h3>🔑 Secrets before they ship</h3>
+      <p>Every <code>git push</code> is scanned first — gitleaks plus a regex layer plus forbidden-file checks.</p>
+      <p class="blocked">BLOCKED: credential-shaped string in outgoing diff</p></div>
+    <div class="card"><h3>💣 Blast-radius commands</h3>
+      <p><code>rm -rf "$UNSET_VAR"</code>, force-push to main, <code>curl | sh</code>, <code>chmod 777</code>, <code>dd of=/dev/*</code> — gated, with the reason fed back to the model.</p></div>
+    <div class="card"><h3>🌳 Worktree protection</h3>
+      <p>Agents can't delete other sessions' worktrees or sweep gitlinks into commits with <code>git add -A</code>.</p></div>
+  </div>
+
+  <h2>Install in 30 seconds</h2>
+  <pre><code>/plugin marketplace add Ludoonus/cc-powerpack
+/plugin install cc-powerpack</code></pre>
+  <p class="sub" style="font-size:.95rem">Requires bash + jq (python3 fallback built in). Optional: gitleaks. 18 functional tests included.</p>
+
+  <h2 id="pro">Pro suite</h2>
+  <div class="grid">
+    <div class="tier">
+      <h3>Free</h3><div class="price">$0</div>
+      <ul><li>3 guardrail hooks</li><li>MIT licensed, forever</li><li>Community support</li></ul>
+      <a class="cta ghost" href="https://github.com/Ludoonus/cc-powerpack" style="margin-top:14px">GitHub →</a>
+    </div>
+    <div class="tier">
+      <h3>Pro</h3><div class="price">$19/mo <span style="font-size:.9rem;color:var(--dim)">or $149/yr</span></div>
+      <ul>
+        <li><b>token-audit</b> — find where tokens go (real users: 300k+ wasted tokens found)</li>
+        <li><b>pr-pipeline</b> — branch → test → review → PR, one command</li>
+        <li><b>onboard</b> — instant codebase orientation docs</li>
+        <li><b>team-sync</b> — stop CLAUDE.md config drift</li>
+        <li>New skills every month</li>
+      </ul>
+      <a class="cta primary" id="buy" href="https://github.com/Ludoonus/cc-powerpack#pro-tier" style="margin-top:14px">Launching this week — watch the repo →</a>
+    </div>
+    <div class="tier">
+      <h3>Team</h3><div class="price">$49/mo</div>
+      <ul><li>Everything in Pro</li><li>5 seats</li><li>Priority fixes</li><li>Request-a-skill</li></ul>
+      <a class="cta ghost" href="https://github.com/Ludoonus/cc-powerpack#pro-tier" style="margin-top:14px">Launching this week →</a>
+    </div>
+  </div>
+
+  <footer>
+    Built by a developer running Claude Code in anger every day.
+    Everything executes on your machine — no servers, no exposed ports, no telemetry.
+    · <a href="https://github.com/Ludoonus/cc-powerpack">GitHub</a>
+  </footer>
+</div>
+</body>
+</html>
