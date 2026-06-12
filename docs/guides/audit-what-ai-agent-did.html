@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How to Audit What Your AI Coding Agent Actually Did</title>
+<meta name="description" content="An AI coding agent runs commands and edits files unattended. Here's how to audit exactly what it did — every command, every file, every sensitive-path access — from the transcripts it already writes.">
+<link rel="canonical" href="https://ludoonus.github.io/cc-powerpack/guides/audit-what-ai-agent-did.html">
+<meta property="og:title" content="How to Audit What Your AI Coding Agent Actually Did">
+<meta property="og:type" content="article">
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--border:#30363d;--accent:#3fb950}
+  *{box-sizing:border-box;margin:0}
+  body{background:var(--bg);color:#c9d1d9;font:16px/1.7 ui-sans-serif,system-ui,sans-serif}
+  .wrap{max-width:760px;margin:0 auto;padding:48px 20px}
+  h1{font-size:2rem;line-height:1.2;margin-bottom:8px;color:#e6edf3}
+  h2{font-size:1.35rem;margin:40px 0 14px;color:#e6edf3}
+  .meta{color:#8b949e;font-size:.9rem;margin-bottom:32px}
+  pre{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px 16px;overflow-x:auto;font-size:.88rem;margin:14px 0}
+  code{font-family:ui-monospace,monospace;font-size:.9em}
+  p code,li code{background:var(--panel);padding:1px 5px;border-radius:4px}
+  a{color:#58a6ff}
+  .cta{display:block;margin:40px 0;padding:18px 20px;background:var(--panel);border:1px solid var(--border);border-radius:10px}
+  nav a{color:#8b949e;font-size:.9rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav><a href="../index.html">← CC Powerpack</a></nav>
+  <h1>How to Audit What Your AI Coding Agent Actually Did</h1>
+  <p class="meta">The agent's summary is a story. The transcript is the evidence.</p>
+
+  <p>If you let an AI coding agent run unattended — and increasingly people do — you
+  eventually need to answer a specific question: what did it <em>actually</em> do? Not
+  the tidy summary it gives at the end, but the literal sequence of commands it ran and
+  files it changed. You need this for trust (did it stay in bounds?), for debugging (how
+  did it reach a broken state?), and for security (did anything happen that shouldn't
+  have?).</p>
+
+  <h2>Why the summary isn't enough</h2>
+  <p>An agent's end-of-session summary is a reconstruction — sometimes lossy, occasionally
+  optimistic. It reports what the agent believes it accomplished, which can quietly omit a
+  command that failed, a file it touched and reverted, or a step it skipped. For an audit
+  you want ground truth, and the agent's narration isn't it.</p>
+
+  <h2>The good news: the record already exists</h2>
+  <p>Claude Code writes every session to <code>~/.claude/projects/</code> as a JSONL
+  transcript, and <em>every</em> tool call is in there — each command run, each file read
+  or written, each result returned, with timestamps. That's a complete audit trail. You
+  just have to read it.</p>
+
+  <h2>The four questions an audit answers</h2>
+  <ul>
+    <li><strong>What commands ran?</strong> Every Bash tool call — the literal command
+      stream. The core of any security review.</li>
+    <li><strong>What files changed?</strong> Every Write and Edit, by path. The blast
+      radius of the session.</li>
+    <li><strong>What was accessed?</strong> Every Read — and specifically, any read of a
+      sensitive path (<code>.env</code>, keys, credentials) the task had no reason to touch.</li>
+    <li><strong>Where did it fail?</strong> Tool results carrying errors mark where the
+      session struggled — often where an investigation should start.</li>
+  </ul>
+
+  <h2>What to look for</h2>
+  <p>An audit is only useful if you know the signals:</p>
+  <ul>
+    <li><strong>Scope creep</strong> — commands outside the task (an agent asked to fix a
+      test that also edited deploy config).</li>
+    <li><strong>Sensitive access</strong> — reads or writes of <code>.env</code> / key
+      material in a session that shouldn't need them.</li>
+    <li><strong>Dangerous attempts</strong> — force-pushes, <code>rm -rf</code> on risky
+      paths, <code>curl | sh</code> — whether or not a guardrail stopped them.</li>
+    <li><strong>Failed-then-retried</strong> sequences, which sometimes mark a workaround.</li>
+  </ul>
+
+  <h2>Make it a habit, not a forensic</h2>
+  <p>The instinct is to read the audit trail only after something breaks. The higher-value
+  practice is a periodic, lightweight glance at what your agents did unattended — the way
+  you'd skim a colleague's pull requests. It builds an accurate sense of how your agents
+  actually behave and surfaces drift before it becomes an incident.</p>
+
+  <div class="cta">
+    <strong>Don't want to parse JSONL by hand?</strong><br>
+    <a href="https://github.com/Ludoonus/operator">Operator</a> reads those transcripts
+    and gives you the whole audit in one command — every command, every file write, every
+    sensitive-path access, plus the dangerous actions your agents attempted — across all
+    your projects. Free, local, no telemetry.
+  </div>
+  <p><a href="../index.html">← Back</a> · <a href="reduce-claude-code-token-cost.html">Where your tokens actually go →</a></p>
+</div>
+</body>
+</html>
