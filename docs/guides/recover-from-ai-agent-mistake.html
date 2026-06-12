@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recovering When an AI Coding Agent Breaks Something</title>
+<meta name="description" content="An AI agent force-pushed over a branch, ran rm -rf, or deleted uncommitted work. Here are the recovery playbooks — in the right order — for the failures that actually happen.">
+<link rel="canonical" href="https://ludoonus.github.io/cc-powerpack/guides/recover-from-ai-agent-mistake">
+<meta property="og:title" content="Recovering When an AI Coding Agent Breaks Something">
+<meta property="og:type" content="article">
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--border:#30363d;--accent:#3fb950}
+  *{box-sizing:border-box;margin:0}
+  body{background:var(--bg);color:#c9d1d9;font:16px/1.7 ui-sans-serif,system-ui,sans-serif}
+  .wrap{max-width:760px;margin:0 auto;padding:48px 20px}
+  h1{font-size:2rem;line-height:1.2;margin-bottom:8px;color:#e6edf3}
+  h2{font-size:1.3rem;margin:36px 0 12px;color:#e6edf3}
+  .meta{color:#8b949e;font-size:.9rem;margin-bottom:30px}
+  pre{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px 16px;overflow-x:auto;font-size:.88rem;margin:12px 0}
+  code{font-family:ui-monospace,monospace;font-size:.9em}
+  p code,li code{background:var(--panel);padding:1px 5px;border-radius:4px}
+  a{color:#58a6ff}
+  .cta{display:block;margin:38px 0;padding:18px 20px;background:var(--panel);border:1px solid var(--border);border-radius:10px}
+  nav a{color:#8b949e;font-size:.9rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav><a href="../index.html">← CC Powerpack</a></nav>
+  <h1>Recovering When an AI Coding Agent Breaks Something</h1>
+  <p class="meta">The playbooks, in the right order, for the failures that actually happen</p>
+
+  <p>Eventually an AI coding agent does something destructive: a force-push over a branch
+  that mattered, an <code>rm -rf</code> with a bad path, a <code>git reset --hard</code>
+  that wiped uncommitted work. The difference between a bad hour and a bad week is having
+  a rehearsed response instead of improvising. Here are the recoveries for the common
+  cases.</p>
+
+  <h2>First rule: stop digging</h2>
+  <p>The most expensive instinct is to immediately start fixing, fast, under adrenaline —
+  that's how a recoverable situation becomes unrecoverable. <strong>Assess the state
+  before you change it.</strong> Most of what follows is recoverable if you don't compound
+  it: the reflog still has your commits, the remote still has history, the object is
+  probably still there. Calm is the first tool.</p>
+
+  <h2>A force-push clobbered a branch</h2>
+  <p>The commits look gone. They usually aren't — they exist as objects until garbage-collected.
+  On a machine that had the branch:</p>
+  <pre><code>git reflog                      # find the SHA from before the bad push
+git branch recovered &lt;good-sha&gt; # rescue it to a new branch</code></pre>
+  <p>If no local clone has the old state, a CI checkout or another teammate's clone may
+  still hold it.</p>
+
+  <h2>Uncommitted work was deleted</h2>
+  <p>This is the hardest, because uncommitted work has no git object. Check, in order:
+  editor local history (most IDEs keep it), OS snapshots / Time Machine, and
+  <code>git stash list</code> in case it was stashed rather than lost. Then take the real
+  lesson: commit work-in-progress more often, so the blast radius of any single mistake
+  is never more than an hour.</p>
+
+  <h2>A secret got pushed</h2>
+  <p>Strict order of operations — people reliably get this backwards:</p>
+  <pre><code>1. Rotate the credential FIRST (it's exposed the moment it hits a remote)
+2. Then purge it from history (git filter-repo) and force-push
+3. Then audit logs for use in the exposure window</code></pre>
+  <p>Spending an hour scrubbing history while the live key sits exposed is the common,
+  costly mistake. Rotate first, always.</p>
+
+  <h2>The pattern across all of them</h2>
+  <p>Two things recover most situations: git's safety nets (reflog, objects, revert) and a
+  decision you made <em>before</em> the incident — gating the dangerous command, committing
+  often, keeping backups. Recovery is mostly the dividend of disciplines set up earlier,
+  plus the composure not to make it worse.</p>
+
+  <div class="cta">
+    <strong>This is one chapter from The Claude Code Operator's Handbook.</strong><br>
+    18 chapters on running AI coding agents safely and efficiently — the full threat model,
+    tested guardrail hooks, cost optimization, shipping workflows, and the complete recovery
+    playbooks. <a href="https://buy.polar.sh/polar_cl_bdvCUcss2gZxnVYP1XrPrDFkRRMpByDSFKsCU0tMoJA">Get the handbook ($29) →</a>
+    &nbsp;·&nbsp; or start with the free <a href="https://github.com/Ludoonus/cc-powerpack">guardrail hooks</a>.
+  </div>
+</div>
+</body>
+</html>
