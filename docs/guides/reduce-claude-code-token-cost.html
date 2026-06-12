@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Where Claude Code Tokens Actually Go (and How to Cut the Waste)</title>
+<meta name="description" content="Claude Code token usage is dominated by a few patterns: re-reading the same files, oversized tool output, and cache misses. Here's how to measure and cut each one.">
+<link rel="canonical" href="https://ludoonus.github.io/cc-powerpack/guides/reduce-claude-code-token-cost.html">
+<meta property="og:title" content="Where Claude Code Tokens Actually Go">
+<meta property="og:type" content="article">
+<style>
+  :root { --bg:#0d1117; --panel:#161b22; --border:#30363d; --accent:#3fb950; }
+  * { box-sizing:border-box; margin:0; }
+  body { background:var(--bg); color:#c9d1d9; font:16px/1.7 ui-sans-serif,system-ui,sans-serif; }
+  .wrap { max-width:760px; margin:0 auto; padding:48px 20px; }
+  h1 { font-size:2rem; line-height:1.2; margin-bottom:8px; color:#e6edf3; }
+  h2 { font-size:1.35rem; margin:40px 0 14px; color:#e6edf3; }
+  .meta { color:#8b949e; font-size:.9rem; margin-bottom:32px; }
+  pre { background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:14px 16px; overflow-x:auto; font-size:.88rem; margin:14px 0; }
+  code { font-family:ui-monospace,monospace; font-size:.9em; }
+  p code, li code { background:var(--panel); padding:1px 5px; border-radius:4px; }
+  a { color:#58a6ff; }
+  .cta { display:block; margin:40px 0; padding:18px 20px; background:var(--panel); border:1px solid var(--border); border-radius:10px; }
+  nav a { color:#8b949e; font-size:.9rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav><a href="../index.html">← CC Powerpack</a></nav>
+  <h1>Where Claude Code Tokens Actually Go</h1>
+  <p class="meta">Measure the waste before you optimize it</p>
+
+  <p>If your Claude Code API bill feels high, the cause is rarely "too many turns."
+  It's a handful of specific, measurable patterns. Each one is visible in the
+  session transcripts Claude Code already writes to
+  <code>~/.claude/projects/</code> — you just have to add up the usage the API
+  reports per turn. Here are the big three.</p>
+
+  <h2>1. Re-reading the same files</h2>
+  <p>The single most common waste pattern. The agent reads a large reference file,
+  the conversation moves on, the file falls out of working context, and it reads
+  the <em>entire</em> file again later. A 2,000-line file read five times is four
+  needless full-file payloads.</p>
+  <p>Two fixes. For files the agent visits repeatedly, put a short summary plus key
+  line numbers in your <code>CLAUDE.md</code> so it stops re-discovering them. For
+  one-off lookups in big files, prefer a targeted <code>grep -n</code> followed by
+  reading just the matching range, instead of reading the whole thing.</p>
+
+  <h2>2. Oversized tool output</h2>
+  <p>Tool results are tokens too. A <code>cat</code> of a 5,000-line log, an
+  un-truncated <code>npm test</code> run, a full <code>git diff</code> of a
+  generated lockfile — each lands in context at full size. Worse, one giant result
+  can evict your prompt cache (see below), so you pay twice.</p>
+  <pre><code># instead of dumping everything:
+cat huge.log                 # thousands of tokens
+
+# scope it:
+rg "ERROR|WARN" huge.log | head -50
+npm test --silent 2>&1 | tail -30</code></pre>
+
+  <h2>3. Cache misses</h2>
+  <p>Anthropic's prompt cache makes the repeated prefix of a conversation cheap —
+  but only within a ~5-minute window, and only if the prefix is stable. Long idle
+  gaps between turns let the cache expire. Huge tool results churn the context and
+  evict the cached prefix. A healthy session reads 70%+ of its input tokens from
+  cache; if you're well below that, batch your interactions and trim the output
+  that's causing churn.</p>
+
+  <h2>How to measure your own sessions</h2>
+  <p>Every assistant turn in the transcript JSONL carries a <code>usage</code>
+  object with <code>input_tokens</code>, <code>output_tokens</code>,
+  <code>cache_read_input_tokens</code>, and <code>cache_creation_input_tokens</code>.
+  Sum them across sessions, attribute tool-result size by tool, and count how many
+  times each file was read. The waste becomes obvious fast — in real sessions it's
+  common to find 15–30% of input tokens going to re-reads and oversized results
+  alone.</p>
+
+  <div class="cta">
+    <strong>Don't want to write the analyzer?</strong><br>
+    CC Powerpack Pro includes <code>token-audit</code> — it scans your transcripts,
+    shows exactly where tokens went (per tool, per re-read file, cache hit rate),
+    and emits concrete config fixes.
+    <a href="https://ludoonus.gumroad.com/l/PowerPackPro">See CC Powerpack Pro →</a>
+    or start with the <a href="https://github.com/Ludoonus/cc-powerpack">free hooks</a>.
+  </div>
+  <p><a href="../index.html">← Back to CC Powerpack</a></p>
+</div>
+</body>
+</html>
