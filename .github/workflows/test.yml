@@ -6,6 +6,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Make hooks executable
-        run: chmod +x hooks/*.sh tests/*.sh
+        run: chmod +x hooks/*.sh tests/*.sh scan.sh
       - name: Run hook test suite
         run: ./tests/run-tests.sh
+  action-selftest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run our own secret-scan Action against this repo
+        uses: ./
