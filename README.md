@@ -59,6 +59,23 @@ the user instead of retrying.
 5 more plugins (token-audit, pr-pipeline, onboard, team-sync + monthly new
 ones), updated monthly: [https://buy.polar.sh/polar_cl_hpobp5A87nRzzgZhAgvxx6LNNkgx3XFARG8Ua1Tmjdt](https://buy.polar.sh/polar_cl_hpobp5A87nRzzgZhAgvxx6LNNkgx3XFARG8Ua1Tmjdt)
 
+
+## Use it in CI (GitHub Action)
+
+Scan every PR for secrets and sensitive files, not just local pushes:
+
+```yaml
+# .github/workflows/secret-scan.yml
+name: secret-scan
+on: [push, pull_request]
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Ludoonus/cc-powerpack@v0.1.1
+```
+
 ## License
 
 Free tier: MIT. Use it, fork it, ship it.

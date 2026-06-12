@@ -1,0 +1,16 @@
+name: 'CC Powerpack Secret Scan'
+description: 'Scan a repo or PR for credential-shaped strings and sensitive files before they ship. From cc-powerpack.'
+branding:
+  icon: 'shield'
+  color: 'green'
+inputs:
+  fail-on-find:
+    description: 'Exit non-zero if a secret is found'
+    required: false
+    default: 'true'
+runs:
+  using: 'composite'
+  steps:
+    - name: cc-powerpack secret scan
+      shell: bash
+      run: ${{ github.action_path }}/scan.sh "${{ inputs.fail-on-find }}"
