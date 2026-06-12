@@ -1,0 +1,11 @@
+name: tests
+on: [push, pull_request]
+jobs:
+  hooks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Make hooks executable
+        run: chmod +x hooks/*.sh tests/*.sh
+      - name: Run hook test suite
+        run: ./tests/run-tests.sh
